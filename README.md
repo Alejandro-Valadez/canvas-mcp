@@ -1,46 +1,46 @@
-# Canvas LMS MCP Server for Claude
+# canvas-mcp
 
-An MCP (Model Context Protocol) server that connects Claude to Canvas LMS, letting you manage your coursework through natural conversation.
+An MCP server that connects Claude to Canvas LMS. Ask about your courses, deadlines, rubrics, and instructor feedback in plain conversation, and submit work without leaving the chat.
 
 **Ask Claude things like:**
-- "What's due this week in MI4?"
-- "Show me the rubric for my Lit Explorations essay"
-- "What did Ms. Kopff say in my Chemistry feedback?"
-- "List all my IMSA courses"
-- "Are there any overdue assignments in MSI?"
 
-## Quick Start
+- "What's due this week across all my courses?"
+- "Show me the rubric for my English essay."
+- "What feedback did I get on my last chemistry lab?"
+- "Do I have any overdue assignments?"
+- "Read the instructions in the .docx attached to this assignment."
 
-### 1. Get Your Canvas API Token
+It runs on your computer with your own Canvas token. Nothing goes through a third-party server.
 
-1. Log in to Canvas
-2. Click your **profile picture** → **Settings**
-3. Scroll to **Approved Integrations**
-4. Click **+ New Access Token**
-5. Name it (e.g., "Claude") and click **Generate Token**
-6. **Copy the token** - you won't see it again!
+## Quick start
 
-### 2. Install the MCP Server
+Needs Node.js 18 or newer.
+
+### 1. Get a Canvas API token
+
+1. Log in to Canvas.
+2. Click your profile picture, then **Settings**.
+3. Scroll to **Approved Integrations** and click **+ New Access Token**.
+4. Name it (for example, "Claude"), set an expiry date, and click **Generate Token**.
+5. Copy the token. Canvas shows it only once.
+
+### 2. Build the server
 
 ```bash
-# Clone this repository
-git clone https://github.com/f1alej/canvas-mcp.git
+git clone https://github.com/Alejandro-Valadez/canvas-mcp.git
 cd canvas-mcp
-
-# Install dependencies
 npm install
-
-# Build the project
 npm run build
 ```
 
-### 3. Configure Claude Desktop
+### 3. Connect it to Claude
 
-Open Claude Desktop's config file:
-- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+**Claude Desktop.** Open the config file:
 
-Add (or merge) this configuration:
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+Add this block (merge it if `mcpServers` already exists):
 
 ```json
 {
@@ -57,159 +57,87 @@ Add (or merge) this configuration:
 }
 ```
 
-**Replace:**
-- `/FULL/PATH/TO/canvas-mcp` with the actual path where you cloned this repo
-- `YOUR_TOKEN_HERE` with your Canvas API token
-- `https://your-school.instructure.com` with your Canvas URL
+Replace the path, the token, and the URL. Your Canvas URL is the address in your browser when you're logged in, with no trailing slash. Then quit Claude Desktop completely and reopen it.
 
-**Common Canvas URLs:**
-| University | Canvas URL |
-|------------|------------|
-| Illinois Mathematics and Science Academy | `https://imsa.instructure.com` |
-| Generic Instructure | `https://canvas.instructure.com` |
-| Your school | Check your browser when logged into Canvas |
+**Claude Code.**
 
-### 4. Restart Claude Desktop
+```bash
+claude mcp add canvas \
+  -e CANVAS_API_TOKEN=YOUR_TOKEN_HERE \
+  -e CANVAS_BASE_URL=https://your-school.instructure.com \
+  -- node /FULL/PATH/TO/canvas-mcp/dist/index.js
+```
 
-Quit Claude Desktop completely (Cmd+Q / Alt+F4) and reopen it.
+You can also put both values in a `.env` file (copy `.env.example`) in the directory you start the server from.
 
-You should now see Canvas tools available in Claude!
+## Tools
 
----
+20 tools in 7 groups.
 
-## What Can It Do?
+| Group | Tool | What it does |
+|---|---|---|
+| Courses | `list_courses` | List your enrolled courses |
+| | `get_course` | Course details and syllabus |
+| Assignments | `list_assignments` | List assignments, with filters |
+| | `get_assignment` | Full assignment details and rubric |
+| | `get_rubric` | Grading rubric for an assignment |
+| Submissions | `get_submission` | Your submission, grade, and feedback |
+| | `submit_assignment` | Submit text or a URL |
+| | `upload_file` | Upload a file for a submission |
+| Modules | `list_modules` | Browse course modules |
+| | `list_announcements` | Course announcements |
+| Discussions | `list_discussions` | Discussion topics |
+| | `get_discussion_entries` | Read discussion posts |
+| | `post_discussion_entry` | Post to a discussion |
+| | `reply_to_discussion` | Reply to a post |
+| Search | `find_assignments_by_due_date` | Assignments in a date range |
+| | `get_upcoming_assignments` | Work due in the next N days |
+| | `get_overdue_assignments` | Past-due work |
+| | `search_course_content` | Search modules and assignments |
+| | `get_all_upcoming_work` | Upcoming work across every course |
+| Files | `read_docx_file` | Read the text of a `.docx` attachment |
 
-### 📚 Courses
-- List all your enrolled courses
-- Get course details and syllabi
-
-### 📝 Assignments
-- List assignments (filter by upcoming, overdue, etc.)
-- View full assignment details and instructions
-- See rubrics and grading criteria
-- Check your grades and submission status
-
-### 💬 Discussions
-- View discussion boards
-- Post new discussion entries
-- Reply to classmates
-
-### 📤 Submissions
-- Submit text assignments directly
-- Upload files for submission
-- View instructor feedback and comments
-
-### 📄 Files
-- Read the text content of `.docx` attachments (assignment instructions, submitted papers, feedback docs) directly in the conversation
-
-### 🔍 Search
-- Find assignments by due date
-- Search course content
-- Get all upcoming work across all courses
-
----
-
-## All Available Tools
-
-| Tool | What it does |
-|------|--------------|
-| `list_courses` | List your enrolled courses |
-| `get_course` | Get details about a specific course |
-| `list_assignments` | List assignments (with filters) |
-| `get_assignment` | Get full assignment details + rubric |
-| `get_rubric` | Get grading rubric for an assignment |
-| `get_submission` | View your submission and feedback |
-| `submit_assignment` | Submit text or URL to an assignment |
-| `upload_file` | Upload a file for submission |
-| `list_modules` | Browse course modules |
-| `list_announcements` | Get course announcements |
-| `list_discussions` | View discussion topics |
-| `get_discussion_entries` | Read discussion posts |
-| `post_discussion_entry` | Post to a discussion |
-| `reply_to_discussion` | Reply to a discussion post |
-| `find_assignments_by_due_date` | Find assignments in a date range |
-| `get_upcoming_assignments` | Get work due in the next N days |
-| `get_overdue_assignments` | Find past-due work |
-| `search_course_content` | Search modules and assignments |
-| `get_all_upcoming_work` | Upcoming work across ALL courses |
-| `read_docx_file` | Read the text content of a `.docx` file attachment |
-
----
+Four tools write to Canvas as you: `submit_assignment`, `upload_file`, `post_discussion_entry`, and `reply_to_discussion`. Keep tool approval on in your Claude client so you confirm each one before it runs.
 
 ## Troubleshooting
 
-### "Canvas tools not showing up"
-1. Make sure you restarted Claude Desktop completely
-2. Check that the path in your config is correct
-3. Verify your `claude_desktop_config.json` is valid JSON
+| Symptom | Fix |
+|---|---|
+| Canvas tools don't appear | Fully quit and reopen Claude Desktop. Check the path to `dist/index.js` and that the config is valid JSON. |
+| `401 Unauthorized` | The token is wrong or expired. Make a new one in Canvas settings. |
+| `403 Forbidden` | You don't have access to that course or item. The course may have ended. |
+| Connection refused or network errors | Check `CANVAS_BASE_URL`: it needs `https://` and no trailing slash. |
 
-### "401 Unauthorized" errors
-Your API token is invalid or expired. Generate a new one in Canvas settings.
+## Security
 
-### "403 Forbidden" errors
-You don't have access to that resource. The course may have ended, or you're not enrolled.
+Your token has the same access as your Canvas account: it can read your grades and submit work.
 
-### "Connection refused" or network errors
-Check that your `CANVAS_BASE_URL` is correct (no trailing slash).
-
----
-
-## Security Notes
-
-⚠️ **Keep your API token secret!**
-- Never commit your token to git
-- Don't share your token with others
-- Set an expiration date when creating tokens
-- Revoke tokens you no longer use (Canvas Settings → Approved Integrations)
-
-Your API token has the same access as your Canvas account - anyone with it can view your grades, submit assignments, etc.
-
----
+- Never commit it. `.env` is in `.gitignore`.
+- Give it an expiry date.
+- Revoke tokens you no longer use (Canvas **Settings > Approved Integrations**).
 
 ## Development
 
 ```bash
-# Install dependencies
 npm install
-
-# Build once
-npm run build
-
-# Watch mode (auto-rebuild on changes)
-npm run dev
+npm run build   # compile TypeScript to dist/
+npm run dev     # rebuild on change
+npm start       # run the server
 ```
 
-### Project Structure
 ```
-canvas-mcp/
-├── src/
-│   ├── index.ts           # MCP server entry point
-│   ├── canvas-client.ts   # Canvas API wrapper
-│   ├── tools/             # Tool implementations
-│   │   ├── courses.ts
-│   │   ├── assignments.ts
-│   │   ├── submissions.ts
-│   │   ├── discussions.ts
-│   │   ├── modules.ts
-│   │   └── search.ts
-│   └── types/
-│       └── canvas.ts      # TypeScript types
-├── dist/                  # Compiled output
-├── package.json
-└── tsconfig.json
+src/
+├── index.ts           # MCP server entry point
+├── canvas-client.ts   # Canvas REST API wrapper
+├── tools/             # courses, assignments, submissions, modules,
+│                      # discussions, search, files
+└── types/canvas.ts    # Canvas API types
 ```
 
----
+Built with the [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk), [zod](https://zod.dev), and [mammoth](https://github.com/mwilliamson/mammoth.js) for `.docx` text.
 
-## Contributing
-
-Contributions welcome! Feel free to:
-- Report bugs
-- Suggest new features
-- Submit pull requests
-
----
+Issues and pull requests are welcome.
 
 ## License
 
-MIT - Use it however you want!
+[MIT](LICENSE). Not affiliated with Instructure or Anthropic.
